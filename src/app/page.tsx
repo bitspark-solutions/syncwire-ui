@@ -1,66 +1,101 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
 
-export default function Home() {
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import AppBar from '@mui/material/AppBar';
+import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CircularProgress from '@mui/material/CircularProgress';
+import Container from '@mui/material/Container';
+import Stack from '@mui/material/Stack';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import SyncAltRoundedIcon from '@mui/icons-material/SyncAltRounded';
+import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
+import { useAuth } from '../lib/auth';
+
+export default function HomePage() {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  // undefined = session still restoring; null = signed out.
+  useEffect(() => {
+    if (user === null) router.replace('/login');
+  }, [user, router]);
+
+  if (!user) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100dvh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/login');
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <Box sx={{ minHeight: '100dvh' }}>
+      <AppBar position="static" elevation={0} color="transparent">
+        <Toolbar>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ alignItems: 'center', flexGrow: 1 }}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <SyncAltRoundedIcon color="primary" />
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              SyncWire
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+              {user.displayName.charAt(0).toUpperCase()}
+            </Avatar>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {user.displayName}
+            </Typography>
+            <Button
+              onClick={handleLogout}
+              startIcon={<LogoutRoundedIcon />}
+              color="inherit"
+              size="small"
+            >
+              Sign out
+            </Button>
+          </Stack>
+        </Toolbar>
+      </AppBar>
+
+      <Container maxWidth="md" sx={{ py: 6 }}>
+        <Card variant="outlined">
+          <CardContent sx={{ textAlign: 'center', py: 8 }}>
+            <NotificationsNoneRoundedIcon
+              sx={{ fontSize: 56, color: 'text.disabled', mb: 2 }}
             />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <Typography variant="h6" gutterBottom>
+              No notifications yet
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              Signed in as {user.email}. Once your Android device starts
+              relaying, notifications will appear here.
+            </Typography>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   );
 }

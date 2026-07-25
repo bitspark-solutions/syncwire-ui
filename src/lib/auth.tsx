@@ -43,7 +43,14 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<SessionUser | null | undefined>(undefined);
+  // Lazy init: no stored token → signed out immediately; otherwise stay in
+  // the "restoring" state until the refresh call below settles. (On the
+  // server there is no localStorage — render as "restoring" there too.)
+  const [user, setUser] = useState<SessionUser | null | undefined>(() =>
+    typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)
+      ? null
+      : undefined,
+  );
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
 
@@ -64,10 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Restore session on first mount by rotating the stored refresh token.
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      setUser(null);
-      return;
-    }
+    if (!stored) return;
     authApi
       .refresh(stored)
       .then(applySession)

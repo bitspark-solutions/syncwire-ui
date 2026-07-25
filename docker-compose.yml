@@ -1,0 +1,14 @@
+services:
+  ui:
+    build:
+      context: .
+      args:
+        # Baked into the client bundle at build time — must be reachable from
+        # the USER'S BROWSER, not from inside the container network.
+        NEXT_PUBLIC_API_URL: http://localhost:18080/api
+    image: syncwire-ui:local
+    container_name: syncwire-ui
+    restart: unless-stopped
+    ports:
+      # Deliberately far away from the rest of the stack (18080/15432/11883).
+      - "27777:27777"
